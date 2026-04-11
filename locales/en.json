@@ -1,0 +1,15 @@
+{
+  "welcome_title": "✨ Welcome to RielAI — Your Smart Real Estate AI Assistant ✨",
+  "welcome_subtitle": "Premium Real Estate in Moscow & Russia • 24/7",
+  "greeting": "Hello! 👋 I'm Riel — your personal AI real estate expert ❤️\nChoose your role to start:",
+  "role_selected_realtor": "Great! You're a realtor. Now you can create listings, receive hot leads and use Boost to sell faster.",
+  "role_selected_client": "Great! You're a client. I'll help you find the perfect property, calculate mortgage and track prices.",
+  "no_role": "Please type /start and choose your role so I can assist you properly.",
+  "boost_teaser": "Want your listing at the top? Boost for 490 Stars →",
+  "premium_benefit": "Premium: unlimited listings, priority AI, exclusive leads & hot contacts",
+  "create_listing": "➕ Create listing",
+  "search_listings": "🔍 Search properties",
+  "mortgage": "🏦 Mortgage",
+  "sponsored_showcase": "⭐ Sponsored new builds",
+  "change_language": "🌐 Change language"
+}

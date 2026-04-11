@@ -1,0 +1,15 @@
+{
+  "welcome_title": "✨ 欢迎使用 RielAI — 您的智能房地产AI助手 ✨",
+  "welcome_subtitle": "莫斯科及俄罗斯高端房产 • 7x24小时",
+  "greeting": "您好！👋 我是 Riel — 您的私人AI房产专家 ❤️\n请选择您的角色开始：",
+  "role_selected_realtor": "太好了！您是房产经纪人。现在您可以创建房源、获取潜在客户并使用加速服务更快出售。",
+  "role_selected_client": "太好了！您是客户。我将帮您找到理想房产、计算贷款并跟踪价格。",
+  "no_role": "请发送 /start 并选择您的角色，以便我为您提供准确帮助。",
+  "boost_teaser": "想让您的房源置顶？使用490 Stars加速 →",
+  "premium_benefit": "高级版：无限房源、AI优先响应、专属潜在客户及联系方式",
+  "create_listing": "➕ 发布房源",
+  "search_listings": "🔍 搜索房产",
+  "mortgage": "🏦 房贷计算",
+  "sponsored_showcase": "⭐ 赞助新房项目",
+  "change_language": "🌐 切换语言"
+}

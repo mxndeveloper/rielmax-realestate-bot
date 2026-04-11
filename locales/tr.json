@@ -1,0 +1,15 @@
+{
+  "welcome_title": "✨ RielAI'ye Hoş Geldiniz — Akıllı Gayrimenkul AI Asistanınız ✨",
+  "welcome_subtitle": "Moskova ve Rusya'da Premium Gayrimenkul • 7/24",
+  "greeting": "Merhaba! 👋 Ben Riel — kişisel yapay zeka gayrimenkul uzmanınım ❤️\nBaşlamak için rolünü seç:",
+  "role_selected_realtor": "Harika! Sen bir emlakçısın. Artık ilan oluşturabilir, sıcak müşteri adayları alabilir ve daha hızlı satmak için Boost kullanabilirsin.",
+  "role_selected_client": "Harika! Sen bir müşterisin. Mükemmel mülkü bulmana, ipotek hesaplamana ve fiyatları takip etmene yardımcı olacağım.",
+  "no_role": "Lütfen /start yaz ve rolünü seç, böylece sana doğru şekilde yardımcı olabilirim.",
+  "boost_teaser": "İlanının üst sıralarda olmasını ister misin? 490 Stars ile Boost →",
+  "premium_benefit": "Premium: sınırsız ilan, öncelikli AI, özel potansiyel müşteriler ve sıcak iletişim bilgileri",
+  "create_listing": "➕ İlan oluştur",
+  "search_listings": "🔍 Mülk ara",
+  "mortgage": "🏦 İpotek",
+  "sponsored_showcase": "⭐ Sponsorlu yeni binalar",
+  "change_language": "🌐 Dili değiştir"
+}
