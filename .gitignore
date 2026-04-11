@@ -1,0 +1,32 @@
+# Environment & secrets
+.env
+*.env
+*.env.*
+!*.env.example
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Binary / media (optional – keep welcome.jpg if you want to share it)
+welcome.jpg
