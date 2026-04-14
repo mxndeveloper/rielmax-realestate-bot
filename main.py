@@ -3,11 +3,13 @@ import os
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
-from handlers import start, listing, menu, chat, language, search
+from handlers import start, listing, menu, chat, language, search, admin
 from middlewares.throttling import ThrottlingMiddleware
 from middlewares.i18n import I18nMiddleware
 from database import init_db
 from logger import get_logger
+from aggregator.scheduler import start_scheduler
+
 
 load_dotenv()
 
@@ -43,15 +45,16 @@ async def main():
     ]
 
     for proxy_url in free_proxies:
-        try:
-            session = AiohttpSession(proxy=proxy_url)
-            bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"), session=session)
-            me = await bot.get_me()
-            logger.info(f"✅ Connected via proxy {proxy_url} as @{me.username}")
-            break
-        except Exception as e:
-            logger.warning(f"❌ Proxy {proxy_url} failed: {e}")
-            continue
+            try:
+                session = AiohttpSession(proxy=proxy_url)
+                bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"), session=session)
+                me = await bot.get_me()
+                logger.info(f"✅ Connected via proxy {proxy_url} as @{me.username}")
+                break
+            except Exception as e:
+                logger.warning(f"❌ Proxy {proxy_url} failed: {e}")
+                await session.close()   # add this
+                continue
 
     if bot is None:
         logger.error("❌ All proxies failed. Trying direct connection...")
@@ -74,6 +77,10 @@ async def main():
     dp.include_router(chat.router)
     dp.include_router(language.router)
     dp.include_router(search.router)
+    dp.include_router(admin.router)
+
+    # Start the scheduler (non‑blocking)
+    start_scheduler()
 
     logger.info("🚀 RielAI SuperBot запущен и готов к работе ❤️")
     await dp.start_polling(bot)

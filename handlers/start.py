@@ -15,7 +15,7 @@ WELCOME_IMAGE_PATH = "welcome.jpg"
 SUPPORTED_LANGUAGES = ["ru", "en", "tr", "kk", "hy", "ka", "zh"]  # added all
 
 @router.message(Command("start"))
-async def cmd_start(message: Message):
+async def cmd_start(message: Message, _: dict):
     user_id = message.from_user.id
     
     # Get or auto-detect language
@@ -62,7 +62,7 @@ async def change_language_prompt(callback: CallbackQuery):
     await callback.answer()
 
 @router.callback_query(F.data.in_(["role_realtor", "role_client"]))
-async def set_role(callback: CallbackQuery):
+async def set_role(callback: CallbackQuery, _: dict):
     user_id = callback.from_user.id
     lang = await UserDB.get_language(user_id) or "ru"
     

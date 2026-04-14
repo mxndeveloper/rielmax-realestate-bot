@@ -7,7 +7,72 @@ DB_PATH = "riel_bot.db"
 
 
 async def init_db():
-    """Initialize database with all necessary tables"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        # Users table
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                role TEXT,
+                language TEXT DEFAULT 'ru',
+                is_premium INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        # External listings table
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS external_listings (
+                external_id TEXT,
+                source TEXT,
+                title TEXT,
+                description TEXT,
+                price INTEGER,
+                address TEXT,
+                district TEXT,
+                rooms INTEGER,
+                area_total REAL,
+                floor INTEGER,
+                floors_total INTEGER,
+                url TEXT,
+                photos TEXT,
+                is_sponsored INTEGER DEFAULT 0,
+                last_seen TIMESTAMP,
+                PRIMARY KEY (external_id, source)
+            )
+        ''')
+        # User‑created listings table
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS listings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                title TEXT,
+                description TEXT,
+                price INTEGER,
+                district TEXT,
+                address TEXT,
+                photos TEXT,
+                status TEXT DEFAULT 'draft',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(user_id)
+            )
+        ''')
+        # Price alerts table
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS price_alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                district TEXT,
+                max_price INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(user_id)
+            )
+        ''')
+        await db.commit()
+
+    @asynccontextmanager
+    async def get_db():
+        async with aiosqlite.connect(DB_PATH) as db:
+            yield db
+
     async with aiosqlite.connect(DB_PATH) as db:
         # Users table
         await db.execute('''
@@ -20,7 +85,29 @@ async def init_db():
             )
         ''')
 
-        # Listings table (expanded for search and tracking)
+        # External listings table
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS external_listings (
+                external_id TEXT,
+                source TEXT,
+                title TEXT,
+                description TEXT,
+                price INTEGER,
+                address TEXT,
+                district TEXT,
+                rooms INTEGER,
+                area_total REAL,
+                floor INTEGER,
+                floors_total INTEGER,
+                url TEXT,
+                photos TEXT,
+                is_sponsored INTEGER DEFAULT 0,
+                last_seen TIMESTAMP,
+                PRIMARY KEY (external_id, source)
+            )
+        ''')
+
+        # Listings table (user‑created)
         await db.execute('''
             CREATE TABLE IF NOT EXISTS listings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +117,7 @@ async def init_db():
                 price INTEGER,
                 district TEXT,
                 address TEXT,
-                photos TEXT,                    -- JSON string of file_ids
+                photos TEXT,
                 status TEXT DEFAULT 'draft',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(user_id) REFERENCES users(user_id)

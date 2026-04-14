@@ -1,4 +1,5 @@
 {
+  "stats_header": "📊 统计信息:\n👥 用户数: {users}\n📝 房源数: {listings}",
   "welcome_title": "✨ 欢迎使用 RielAI — 您的智能房地产AI助手 ✨",
   "welcome_subtitle": "莫斯科及俄罗斯高端房产 • 7x24小时",
   "greeting": "您好！👋 我是 Riel — 您的私人AI房产专家 ❤️\n请选择您的角色开始：",

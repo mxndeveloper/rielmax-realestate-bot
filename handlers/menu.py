@@ -39,6 +39,4 @@ async def admin_stats(message: Message, _: dict):
             user_count = (await cur.fetchone())[0]
         async with db.execute("SELECT COUNT(*) FROM listings") as cur:
             listing_count = (await cur.fetchone())[0]
-    await message.answer(
-        _["stats_header"].format(users=user_count, listings=listing_count)
-    )
+    await message.answer(_["stats_header"].format(users=user_count, listings=listing_count))

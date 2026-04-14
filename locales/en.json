@@ -1,4 +1,5 @@
 {
+  "stats_header": "📊 Statistics:\n👥 Users: {users}\n📝 Listings: {listings}",
   "welcome_title": "✨ Welcome to RielAI — Your Smart Real Estate AI Assistant ✨",
   "welcome_subtitle": "Premium Real Estate in Moscow & Russia • 24/7",
   "greeting": "Hello! 👋 I'm Riel — your personal AI real estate expert ❤️\nChoose your role to start:",
