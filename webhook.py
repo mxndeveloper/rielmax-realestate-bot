@@ -20,6 +20,10 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN is not set")
 
+# Bothost webhook settings – IMPORTANT: use the correct domain!
+# Your BOTHOST_DOMAIN currently points to a GitHub webhook. For Telegram,
+# you need the domain that Bothost assigned to your bot (e.g., https://your-bot.bothost.ru).
+# If you don't have it, contact Bothost support.
 WEBHOOK_PATH = os.getenv("WEBHOOK_PATH", "/webhook")
 WEBHOOK_DOMAIN = os.getenv("BOTHOST_DOMAIN")
 if not WEBHOOK_DOMAIN:
@@ -27,10 +31,11 @@ if not WEBHOOK_DOMAIN:
 WEBHOOK_URL = f"{WEBHOOK_DOMAIN.rstrip('/')}{WEBHOOK_PATH}"
 
 BOT_ENV = os.getenv("BOT_ENV", "development")
-BEARER_TOKEN = os.getenv("BOTHOST_BEARER_TOKEN")
+# Use the token you already have in .env
+BEARER_TOKEN = os.getenv("BOTHOST_WEBHOOK_TOKEN")
 
 if BOT_ENV == "production" and not BEARER_TOKEN:
-    raise ValueError("BOTHOST_BEARER_TOKEN is required in production (get it from Bothost dashboard)")
+    raise ValueError("BOTHOST_WEBHOOK_TOKEN is required in production")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -49,7 +54,7 @@ dp.include_router(search.router)
 dp.include_router(admin.router)
 
 
-# ---------- Bearer Token Verification Middleware (only in production) ----------
+# ---------- Bearer Token Verification Middleware ----------
 if BOT_ENV == "production":
     @dp.update.outer_middleware()
     async def verify_bearer_token(handler, event: Update, data: dict):
@@ -62,6 +67,7 @@ if BOT_ENV == "production":
             return web.Response(status=401, text="Unauthorized: missing Bearer token")
         token = auth_header.split(" ")[1]
         if token != BEARER_TOKEN:
+            logger.warning(f"Invalid token received: {token[:10]}...")
             return web.Response(status=403, text="Forbidden: invalid token")
         return await handler(event, data)
 
