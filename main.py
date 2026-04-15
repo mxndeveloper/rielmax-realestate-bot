@@ -12,12 +12,12 @@ from aggregator.scheduler import start_scheduler
 
 
 load_dotenv()
-
 logger = get_logger(__name__)
 
 async def main():
     await init_db()
-
+    
+    # ------ Bot creation with proxy fallback ------
     bot = None
 
     # List of free proxies to try (HTTP)
@@ -45,16 +45,15 @@ async def main():
     ]
 
     for proxy_url in free_proxies:
-            try:
-                session = AiohttpSession(proxy=proxy_url)
-                bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"), session=session)
-                me = await bot.get_me()
-                logger.info(f"✅ Connected via proxy {proxy_url} as @{me.username}")
-                break
-            except Exception as e:
-                logger.warning(f"❌ Proxy {proxy_url} failed: {e}")
-                await session.close()   # add this
-                continue
+        try:
+            session = AiohttpSession(proxy=proxy_url)
+            bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"), session=session)
+            me = await bot.get_me()
+            logger.info(f"✅ Connected via proxy {proxy_url} as @{me.username}")
+            break
+        except Exception as e:
+            logger.warning(f"❌ Proxy {proxy_url} failed: {e}")
+            continue
 
     if bot is None:
         logger.error("❌ All proxies failed. Trying direct connection...")
@@ -66,8 +65,8 @@ async def main():
             logger.error(f"Direct connection also failed: {e}")
             raise RuntimeError("Cannot connect to Telegram. Try mobile hotspot or a different proxy.")
 
+    # ------ Dispatcher setup ------
     dp = Dispatcher()
-
     dp.message.middleware(ThrottlingMiddleware(rate_limit=2))
     dp.update.middleware(I18nMiddleware())
 
