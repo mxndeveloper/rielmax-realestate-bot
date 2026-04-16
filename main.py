@@ -8,9 +8,7 @@ from middlewares.throttling import ThrottlingMiddleware
 from middlewares.i18n import I18nMiddleware
 from database import init_db
 from logger import get_logger
-from data.update_pipeline import start_listing_updater   # only this import
-from config import FREE_PROXIES
-
+from data.update_pipeline import start_listing_updater   
 load_dotenv()
 logger = get_logger(__name__)
 
