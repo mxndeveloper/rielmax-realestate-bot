@@ -8,12 +8,11 @@ from middlewares.throttling import ThrottlingMiddleware
 from middlewares.i18n import I18nMiddleware
 from database import init_db
 from logger import get_logger
-from data.update_pipeline import start_listing_updater
-from config import FREE_PROXIES  # only used in development
+from data.update_pipeline import start_listing_updater   # only this import
+from config import FREE_PROXIES
 
 load_dotenv()
 logger = get_logger(__name__)
-
 
 async def main():
     await init_db()
@@ -67,7 +66,6 @@ async def main():
 
     logger.info("🚀 RielAI SuperBot запущен и готов к работе ❤️")
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     asyncio.run(main())

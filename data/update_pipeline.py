@@ -46,10 +46,6 @@ async def update_listings_job():
 def start_listing_updater():
     """Start the background scheduler (call this in main.py)."""
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        update_listings_job,
-        trigger=IntervalTrigger(hours=6),
-        id="listing_updater"
-    )
+    scheduler.add_job(update_listings_job, trigger=IntervalTrigger(hours=6), id="listing_updater")
     scheduler.start()
     print("📆 Listing updater scheduled every 6 hours.")
