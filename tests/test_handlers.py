@@ -5,6 +5,31 @@ from handlers.language import set_language
 from handlers.chat import handle_chat
 from database import UserDB
 
+@pytest.fixture
+def translations():
+    return {
+        "no_role": "Please /start",
+        "role_selected_realtor": "You are a realtor",
+        "role_selected_client": "You are a client",
+        "role_realtor": "Realtor",
+        "role_client": "Client",
+        "greeting": "Welcome",
+        "stats_header": "Stats: {users} users, {listings} listings",
+        "welcome_title": "Welcome",
+        "welcome_subtitle": "Subtitle",
+        "change_language": "Change language",
+        "role_selected": "You selected role: {role}",
+        "create_listing": "Create listing",
+        "search_listings": "Search properties",
+        "mortgage": "Mortgage",
+        "sponsored_showcase": "Sponsored new builds",
+        "boost_teaser": "Boost listing • 490 Stars",
+        "boost_premium": "Boost listing",
+        "sponsored_text": "Sponsored text",
+        "mortgage_prompt": "Send price and down payment",
+        "mortgage_result": "Monthly payment: {monthly}"
+    }
+
 @pytest.mark.asyncio
 async def test_start_command(db, mock_message, translations):
     mock_message.text = "/start"
@@ -23,11 +48,20 @@ async def test_set_role(db, mock_callback, translations):
 @pytest.mark.asyncio
 async def test_set_language(db, mock_callback):
     mock_callback.data = "lang_en"
+    # Provide a mock translation dict that includes all keys get_role_keyboard expects
+    mock_translations = {
+        "greeting": "Hello",
+        "role_realtor": "Realtor",
+        "role_client": "Client",
+        "change_language": "Change language",
+        "role_selected_realtor": "You are a realtor",
+        "role_selected_client": "You are a client"
+    }
     with patch.object(UserDB, 'set_language', AsyncMock()):
         with patch('builtins.open', mock_open(read_data='{"greeting": "Hello"}')):
-            with patch('json.load', return_value={"greeting": "Hello"}):
+            with patch('json.load', return_value=mock_translations):
                 await set_language(mock_callback)
-    mock_callback.message.edit_text.assert_called_once()
+    mock_callback.message.answer.assert_called()
 
 @pytest.mark.asyncio
 async def test_handle_chat_no_role(db, mock_message, translations):

@@ -5,28 +5,27 @@ from apscheduler.triggers.interval import IntervalTrigger
 from data.cian_parser import CianListingFetcher
 from data.open_data_enricher import MoscowOpenDataEnricher
 from database import save_listings_to_db
+from config import FREE_PROXIES
 
 async def update_listings_job():
     """Background job: fetch latest listings, enrich, store."""
     print("🔄 Running listing update job...")
-    from main import free_proxies   # or import from config
-    fetcher = CianListingFetcher(location="Москва", proxy_list=free_proxies)
+    fetcher = CianListingFetcher(location="Москва", proxy_list=FREE_PROXIES)
     enricher = MoscowOpenDataEnricher()
     
     all_listings = []
-    # Fetch for different room types (optional – you can adjust)
+    # Fetch for different room types (adjust as needed)
     for rooms in [1, 2, 3, None]:  # None = any rooms
         print(f"  Fetching {rooms if rooms else 'any'}-room listings...")
         listings = fetcher.fetch_listings(deal_type="sale", rooms=rooms, max_pages=2)
         all_listings.extend(listings)
-        await asyncio.sleep(1)  # polite delay between requests
+        await asyncio.sleep(1)
     
-    # Remove duplicates by external_id (generate fallback if missing)
+    # Remove duplicates by external_id
     unique_dict = {}
     for lst in all_listings:
         ext_id = lst.get("external_id")
         if not ext_id:
-            # fallback: use source + url hash
             url = lst.get("url", "")
             ext_id = f"cian_{hash(url)}" if url else None
             if ext_id:
@@ -37,7 +36,7 @@ async def update_listings_job():
     unique_listings = list(unique_dict.values())
     print(f"  Unique listings: {len(unique_listings)}")
     
-    # Enrich with open data (currently mock; replace with real API later)
+    # Enrich with open data (mock for now)
     enriched = enricher.enrich_batch(unique_listings)
     
     # Save to database

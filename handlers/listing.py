@@ -35,14 +35,14 @@ async def receive_description(message: Message, state: FSMContext):
     await state.set_state(ListingForm.waiting_for_price)
 
 @router.message(ListingForm.waiting_for_price, F.text)
-async def receive_price(message: Message, state: FSMContext):
+async def receive_price(message: Message, state: FSMContext, _: dict):
     try:
         price = int(message.text.replace(" ", "").replace(",", ""))
         data = await state.get_data()
         # Here you would save to database (listings table)
         await message.answer(
-            f"✅ Объявление сохранено!\n💰 Цена: {price:,} ₽\n📝 Описание: {data['description'][:100]}...\n\n❤️ Riel скоро создаст продающий текст и виртуальный тур.",
-            reply_markup=main_menu
+                    f"✅ ...",
+                    reply_markup=get_main_menu(_, is_premium=False) 
         )
         await state.clear()
     except ValueError:
