@@ -145,8 +145,7 @@ async def get_db():
     """Context manager for database connections (used by menu.py etc.)"""
     async with aiosqlite.connect(DB_PATH) as db:
         yield db
-
-
+        
 class UserDB:
     """User-related database operations"""
 
@@ -278,3 +277,36 @@ class AlertDB:
             ) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(zip([col[0] for col in cursor.description], row)) for row in rows]
+
+            
+async def save_listings_to_db(listings: list):
+    """Insert or update listings in the external_listings table."""
+    import aiosqlite
+    from database import DB_PATH
+    async with aiosqlite.connect(DB_PATH) as db:
+        for lst in listings:
+            photos_str = ",".join(lst.get("photos", [])) if isinstance(lst.get("photos"), list) else lst.get("photos", "")
+            await db.execute("""
+                INSERT OR REPLACE INTO external_listings (
+                    external_id, source, title, description, price, address, district,
+                    rooms, area_total, floor, floors_total, url, photos,
+                    is_sponsored, last_seen
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                lst.get("external_id"),
+                lst.get("source"),
+                lst.get("title"),
+                lst.get("description"),
+                lst.get("price"),
+                lst.get("address"),
+                lst.get("district"),
+                lst.get("rooms"),
+                lst.get("area_total"),
+                lst.get("floor"),
+                lst.get("floors_total"),
+                lst.get("url"),
+                photos_str,
+                1 if lst.get("is_sponsored") else 0,
+                lst.get("last_seen")
+            ))
+        await db.commit()

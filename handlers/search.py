@@ -1,44 +1,66 @@
-import aiohttp
-import feedparser
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from config import PROXY_LIST  # import your proxy list
+import aiosqlite
+from database import DB_PATH
 
 router = Router()
-PROXY_URL = PROXY_LIST[0]  # use the first working proxy
 
 class SearchStates(StatesGroup):
     waiting_for_query = State()
 
 @router.callback_query(F.data == "search_listings")
 async def start_search(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("🔍 Введите запрос для поиска (например: 2‑комнатная центр Москва до 20 млн):")
+    await callback.message.answer(
+        "🔍 Введите параметры поиска (например: *2‑комнатная в центре до 20 млн*)",
+        parse_mode="Markdown"
+    )
     await state.set_state(SearchStates.waiting_for_query)
     await callback.answer()
 
 @router.message(SearchStates.waiting_for_query)
 async def perform_search(message: Message, state: FSMContext):
-    query = message.text
-    search_q = query.replace(" ", "+")
-    url = f"https://www.avito.ru/moskva/kvartiry/prodam/rss?q={search_q}"
-    
-    # Use aiohttp with proxy to fetch RSS
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, proxy=PROXY_URL, timeout=15) as resp:
-            if resp.status != 200:
-                await message.answer("Не удалось получить данные. Попробуйте позже.")
-                await state.clear()
-                return
-            xml = await resp.text()
-            feed = feedparser.parse(xml)
-            if not feed.entries:
-                await message.answer("По вашему запросу ничего не найдено. Попробуйте другие ключевые слова.")
-            else:
-                for entry in feed.entries[:5]:
-                    await message.answer(
-                        f"🏠 *{entry.title}*\n🔗 [Смотреть]({entry.link})",
-                        parse_mode="Markdown"
-                    )
+    query = message.text.lower()
+    # Simple keyword search across title, description, district
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("""
+            SELECT title, price, district, url, source, external_id
+            FROM external_listings
+            WHERE title LIKE ? OR description LIKE ? OR district LIKE ?
+            LIMIT 10
+        """, (f"%{query}%", f"%{query}%", f"%{query}%")) as cursor:
+            rows = await cursor.fetchall()
+    if not rows:
+        await message.answer("По вашему запросу ничего не найдено. Попробуйте другие ключевые слова.")
+    else:
+        for row in rows:
+            title, price, district, url, source, ext_id = row
+            await message.answer(
+                f"🏠 *{title}*\n💰 {price:,} ₽\n📍 {district}\n🔗 [Смотреть на {source}]({url})",
+                parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[[
+                        InlineKeyboardButton(text="📊 Экспертная оценка", callback_data=f"expert_{ext_id}")
+                    ]]
+                )
+            )
     await state.clear()
+
+# Optional: expert analysis callback (using YandexGPT)
+@router.callback_query(F.data.startswith("expert_"))
+async def expert_analysis(callback: CallbackQuery):
+    ext_id = callback.data.split("_")[1]
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT title, description, price, district FROM external_listings WHERE external_id = ?", (ext_id,)) as cursor:
+            listing = await cursor.fetchone()
+    if not listing:
+        await callback.answer("Объявление не найдено", show_alert=True)
+        return
+    title, desc, price, district = listing
+    # Call YandexGPT to generate expert analysis
+    from services.ai_client import generate_ai_response
+    prompt = f"Дай краткую экспертную оценку (плюсы/минусы, цена за м², ликвидность) для квартиры:\nНазвание: {title}\nОписание: {desc}\nЦена: {price}\nРайон: {district}"
+    analysis = await generate_ai_response(prompt, lang="ru")
+    await callback.message.answer(f"📊 *Экспертная оценка Riel:*\n{analysis}", parse_mode="Markdown")
+    await callback.answer()
