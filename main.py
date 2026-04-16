@@ -14,6 +14,7 @@ from config import FREE_PROXIES  # only used in development
 load_dotenv()
 logger = get_logger(__name__)
 
+
 async def main():
     await init_db()
 
@@ -52,6 +53,7 @@ async def main():
     dp.message.middleware(ThrottlingMiddleware(rate_limit=2))
     dp.update.middleware(I18nMiddleware())
 
+    # Include all routers
     dp.include_router(start.router)
     dp.include_router(listing.router)
     dp.include_router(menu.router)
@@ -60,9 +62,12 @@ async def main():
     dp.include_router(search.router)
     dp.include_router(admin.router)
 
+    # Start background listing updater (non‑blocking)
     start_listing_updater()
+
     logger.info("🚀 RielAI SuperBot запущен и готов к работе ❤️")
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

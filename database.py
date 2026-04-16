@@ -7,6 +7,7 @@ DB_PATH = "riel_bot.db"
 
 
 async def init_db():
+    """Initialize database with all necessary tables."""
     async with aiosqlite.connect(DB_PATH) as db:
         # Users table
         await db.execute('''
@@ -18,7 +19,7 @@ async def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        # External listings table
+        # External listings table (from CIAN, Avito, etc.)
         await db.execute('''
             CREATE TABLE IF NOT EXISTS external_listings (
                 external_id TEXT,
@@ -67,91 +68,21 @@ async def init_db():
             )
         ''')
         await db.commit()
-
-    @asynccontextmanager
-    async def get_db():
-        async with aiosqlite.connect(DB_PATH) as db:
-            yield db
-
-    async with aiosqlite.connect(DB_PATH) as db:
-        # Users table
-        await db.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY,
-                role TEXT,
-                language TEXT DEFAULT 'ru',
-                is_premium BOOLEAN DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-
-        # External listings table
-        await db.execute('''
-            CREATE TABLE IF NOT EXISTS external_listings (
-                external_id TEXT,
-                source TEXT,
-                title TEXT,
-                description TEXT,
-                price INTEGER,
-                address TEXT,
-                district TEXT,
-                rooms INTEGER,
-                area_total REAL,
-                floor INTEGER,
-                floors_total INTEGER,
-                url TEXT,
-                photos TEXT,
-                is_sponsored INTEGER DEFAULT 0,
-                last_seen TIMESTAMP,
-                PRIMARY KEY (external_id, source)
-            )
-        ''')
-
-        # Listings table (user‑created)
-        await db.execute('''
-            CREATE TABLE IF NOT EXISTS listings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                title TEXT,
-                description TEXT,
-                price INTEGER,
-                district TEXT,
-                address TEXT,
-                photos TEXT,
-                status TEXT DEFAULT 'draft',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(user_id)
-            )
-        ''')
-
-        # Price alerts table
-        await db.execute('''
-            CREATE TABLE IF NOT EXISTS price_alerts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                district TEXT,
-                max_price INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(user_id)
-            )
-        ''')
-
-        await db.commit()
-    print("✅ Database initialized successfully with users, listings, and price alerts")
+    print("✅ Database initialized successfully.")
 
 
 @asynccontextmanager
 async def get_db():
-    """Context manager for database connections (used by menu.py etc.)"""
+    """Context manager for database connections."""
     async with aiosqlite.connect(DB_PATH) as db:
         yield db
-        
+
+
 class UserDB:
-    """User-related database operations"""
+    """User-related database operations."""
 
     @staticmethod
     async def set_role(user_id: int, role: str) -> None:
-        """Set user role without affecting other fields"""
         async with aiosqlite.connect(DB_PATH) as db:
             await db.execute(
                 "INSERT INTO users (user_id, role) VALUES (?, ?) "
@@ -163,15 +94,12 @@ class UserDB:
     @staticmethod
     async def get_role(user_id: int) -> Optional[str]:
         async with aiosqlite.connect(DB_PATH) as db:
-            async with db.execute(
-                "SELECT role FROM users WHERE user_id = ?", (user_id,)
-            ) as cursor:
+            async with db.execute("SELECT role FROM users WHERE user_id = ?", (user_id,)) as cursor:
                 row = await cursor.fetchone()
                 return row[0] if row else None
 
     @staticmethod
     async def set_language(user_id: int, lang: str) -> None:
-        """Set user language without affecting other fields"""
         async with aiosqlite.connect(DB_PATH) as db:
             await db.execute(
                 "INSERT INTO users (user_id, language) VALUES (?, ?) "
@@ -183,15 +111,12 @@ class UserDB:
     @staticmethod
     async def get_language(user_id: int) -> str:
         async with aiosqlite.connect(DB_PATH) as db:
-            async with db.execute(
-                "SELECT language FROM users WHERE user_id = ?", (user_id,)
-            ) as cursor:
+            async with db.execute("SELECT language FROM users WHERE user_id = ?", (user_id,)) as cursor:
                 row = await cursor.fetchone()
                 return row[0] if row else "ru"
 
     @staticmethod
     async def set_premium(user_id: int, is_premium: bool = True) -> None:
-        """Set premium status without affecting other fields"""
         async with aiosqlite.connect(DB_PATH) as db:
             await db.execute(
                 "INSERT INTO users (user_id, is_premium) VALUES (?, ?) "
@@ -203,15 +128,13 @@ class UserDB:
     @staticmethod
     async def is_premium(user_id: int) -> bool:
         async with aiosqlite.connect(DB_PATH) as db:
-            async with db.execute(
-                "SELECT is_premium FROM users WHERE user_id = ?", (user_id,)
-            ) as cursor:
+            async with db.execute("SELECT is_premium FROM users WHERE user_id = ?", (user_id,)) as cursor:
                 row = await cursor.fetchone()
                 return bool(row[0]) if row else False
 
 
 class ListingDB:
-    """Listing-related database operations"""
+    """User‑created listing operations."""
 
     @staticmethod
     async def add_listing(
@@ -223,7 +146,6 @@ class ListingDB:
         address: str = None,
         photos: str = None
     ) -> int:
-        """Add a new listing and return its ID"""
         async with aiosqlite.connect(DB_PATH) as db:
             cursor = await db.execute(
                 """
@@ -238,18 +160,15 @@ class ListingDB:
 
     @staticmethod
     async def get_user_listings(user_id: int) -> List[Dict]:
-        """Get all listings for a user"""
         async with aiosqlite.connect(DB_PATH) as db:
             async with db.execute(
-                "SELECT * FROM listings WHERE user_id = ? ORDER BY created_at DESC",
-                (user_id,)
+                "SELECT * FROM listings WHERE user_id = ? ORDER BY created_at DESC", (user_id,)
             ) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(zip([col[0] for col in cursor.description], row)) for row in rows]
 
     @staticmethod
     async def get_all_listings() -> List[Dict]:
-        """Get all listings (useful for search)"""
         async with aiosqlite.connect(DB_PATH) as db:
             async with db.execute("SELECT * FROM listings ORDER BY created_at DESC") as cursor:
                 rows = await cursor.fetchall()
@@ -257,7 +176,7 @@ class ListingDB:
 
 
 class AlertDB:
-    """Price alert operations"""
+    """Price alert operations."""
 
     @staticmethod
     async def add_alert(user_id: int, district: str, max_price: int) -> int:
@@ -272,17 +191,13 @@ class AlertDB:
     @staticmethod
     async def get_user_alerts(user_id: int) -> List[Dict]:
         async with aiosqlite.connect(DB_PATH) as db:
-            async with db.execute(
-                "SELECT * FROM price_alerts WHERE user_id = ?", (user_id,)
-            ) as cursor:
+            async with db.execute("SELECT * FROM price_alerts WHERE user_id = ?", (user_id,)) as cursor:
                 rows = await cursor.fetchall()
                 return [dict(zip([col[0] for col in cursor.description], row)) for row in rows]
 
-            
+
 async def save_listings_to_db(listings: list):
-    """Insert or update listings in the external_listings table."""
-    import aiosqlite
-    from database import DB_PATH
+    """Insert or update external listings (used by update pipeline)."""
     async with aiosqlite.connect(DB_PATH) as db:
         for lst in listings:
             photos_str = ",".join(lst.get("photos", [])) if isinstance(lst.get("photos"), list) else lst.get("photos", "")
