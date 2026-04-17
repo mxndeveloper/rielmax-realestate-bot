@@ -13,8 +13,6 @@ logger = get_logger(__name__)
 
 async def main():
     await init_db()
-
-    # Direct connection (works on Bothost)
     bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
     me = await bot.get_me()
     logger.info(f"✅ Connected as @{me.username}")

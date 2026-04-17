@@ -1,11 +1,10 @@
 import os
 import logging
+from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp import web
 from dotenv import load_dotenv
 
-# Import your handlers
 from handlers import start, listing, menu, chat, language, search, admin
 from middlewares.throttling import ThrottlingMiddleware
 from middlewares.i18n import I18nMiddleware
@@ -19,23 +18,18 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN missing")
 
-# Bothost will give you a domain like https://bot1234.bothost.ru
-# You can hardcode it or read from env
 WEBHOOK_PATH = "/webhook"
-WEBHOOK_DOMAIN = os.getenv("BOTHOST_DOMAIN")  # set this env var in Bothost dashboard
+WEBHOOK_DOMAIN = os.getenv("BOTHOST_DOMAIN")
 if not WEBHOOK_DOMAIN:
-    # Fallback – Bothost automatically uses the correct domain; you can leave empty
-    WEBHOOK_DOMAIN = "https://your-bot.bothost.ru"  # replace after creation
+    raise ValueError("BOTHOST_DOMAIN environment variable not set")
 WEBHOOK_URL = f"{WEBHOOK_DOMAIN.rstrip('/')}{WEBHOOK_PATH}"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Middlewares (important for speed – callbacks will answer immediately)
 dp.message.middleware(ThrottlingMiddleware(rate_limit=2))
 dp.update.middleware(I18nMiddleware())
 
-# Include routers
 dp.include_router(start.router)
 dp.include_router(listing.router)
 dp.include_router(menu.router)

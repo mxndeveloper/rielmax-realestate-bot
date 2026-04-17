@@ -11,13 +11,13 @@ ADMIN_ID = int(os.getenv("ADMIN_TELEGRAM_ID", "0"))
 
 @router.callback_query(F.data == "sponsored_showcase")
 async def sponsored_showcase(callback: CallbackQuery, _: dict):
-    await callback.message.answer(_["sponsored_text"])
     await callback.answer()
+    await callback.message.answer(_["sponsored_text"])
 
 @router.callback_query(F.data == "mortgage")
 async def mortgage_menu(callback: CallbackQuery, _: dict):
-    await callback.message.answer(_["mortgage_prompt"], parse_mode="Markdown")
     await callback.answer()
+    await callback.message.answer(_["mortgage_prompt"], parse_mode="Markdown")
 
 @router.message(F.text.regexp(r"^\d+\s+\d+$"))
 async def calculate_mortgage(message: Message, _: dict):

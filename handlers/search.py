@@ -12,12 +12,9 @@ class SearchStates(StatesGroup):
 
 @router.callback_query(F.data == "search_listings")
 async def start_search(callback: CallbackQuery, state: FSMContext, _: dict):
-    await callback.message.answer(
-        _["search_prompt"],
-        parse_mode="Markdown"
-    )
+    await callback.answer()  # ✅ IMMEDIATE
+    await callback.message.answer(_["search_prompt"], parse_mode="Markdown")
     await state.set_state(SearchStates.waiting_for_query)
-    await callback.answer()
 
 @router.message(SearchStates.waiting_for_query)
 async def perform_search(message: Message, state: FSMContext, _: dict):
