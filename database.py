@@ -9,6 +9,7 @@ DB_PATH = "riel_bot.db"
 async def init_db():
     """Initialize database with all necessary tables."""
     async with aiosqlite.connect(DB_PATH) as db:
+        
         # Users table
         await db.execute('''
             CREATE TABLE IF NOT EXISTS users (
@@ -67,6 +68,9 @@ async def init_db():
                 FOREIGN KEY(user_id) REFERENCES users(user_id)
             )
         ''')
+        # ✅ Create indexes AFTER tables exist
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_external_listings_title ON external_listings(title)")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_external_listings_district ON external_listings(district)")
         await db.commit()
     print("✅ Database initialized successfully.")
 
