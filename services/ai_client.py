@@ -3,6 +3,8 @@ import asyncio
 import json
 from config import YANDEX_API_KEY, YANDEX_CATALOG_ID
 from logger import get_logger
+from functools import lru_cache
+import hashlib
 
 logger = get_logger(__name__)
 
@@ -75,3 +77,25 @@ async def generate_ai_response(prompt: str, lang: str = "ru", max_retries: int =
         await asyncio.sleep(1)
 
     return "❌ Ошибка. Напиши позже."
+
+@lru_cache(maxsize=100)
+def _cached_ai_response(prompt_hash: str) -> str:
+    # This function is called only when the hash is new
+    return None  # placeholder, actual call is done in generate_ai_response
+
+async def generate_ai_response(prompt: str, lang: str = "ru") -> str:
+    # Create a cache key from prompt and language
+    key = hashlib.md5(f"{prompt}_{lang}".encode()).hexdigest()
+    
+    # Check cache (simple dict)
+    if key in _cache:
+        return _cache[key]
+    
+    # Call YandexGPT (existing code)
+    response = await _call_yandex_api(prompt, lang)
+    
+    # Store in cache
+    _cache[key] = response
+    return response
+
+_cache = {}

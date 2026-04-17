@@ -1,0 +1,66 @@
+import os
+import logging
+from aiogram import Bot, Dispatcher
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
+from dotenv import load_dotenv
+
+# Import your handlers
+from handlers import start, listing, menu, chat, language, search, admin
+from middlewares.throttling import ThrottlingMiddleware
+from middlewares.i18n import I18nMiddleware
+from database import init_db
+
+load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN missing")
+
+# Bothost will give you a domain like https://bot1234.bothost.ru
+# You can hardcode it or read from env
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_DOMAIN = os.getenv("BOTHOST_DOMAIN")  # set this env var in Bothost dashboard
+if not WEBHOOK_DOMAIN:
+    # Fallback – Bothost automatically uses the correct domain; you can leave empty
+    WEBHOOK_DOMAIN = "https://your-bot.bothost.ru"  # replace after creation
+WEBHOOK_URL = f"{WEBHOOK_DOMAIN.rstrip('/')}{WEBHOOK_PATH}"
+
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+
+# Middlewares (important for speed – callbacks will answer immediately)
+dp.message.middleware(ThrottlingMiddleware(rate_limit=2))
+dp.update.middleware(I18nMiddleware())
+
+# Include routers
+dp.include_router(start.router)
+dp.include_router(listing.router)
+dp.include_router(menu.router)
+dp.include_router(chat.router)
+dp.include_router(language.router)
+dp.include_router(search.router)
+dp.include_router(admin.router)
+
+async def on_startup(app):
+    await init_db()
+    await bot.set_webhook(WEBHOOK_URL)
+    logger.info(f"Webhook set to {WEBHOOK_URL}")
+
+async def on_shutdown(app):
+    await bot.delete_webhook()
+    logger.info("Webhook deleted")
+
+def main():
+    app = web.Application()
+    setup_application(app, dp, bot=bot)
+    app.router.add_get("/", lambda r: web.Response(text="RielAI SuperBot is running ✅"))
+    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
+    app.on_startup.append(on_startup)
+    app.on_shutdown.append(on_shutdown)
+    web.run_app(app, host="0.0.0.0", port=8080)
+
+if __name__ == "__main__":
+    main()
