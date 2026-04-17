@@ -19,7 +19,7 @@ __pycache__/
 *.jpg
 *.png
 *.jpeg
-welcome.jpg
+# welcome.jpg
 
 # Temporary / test data
 listings.csv
