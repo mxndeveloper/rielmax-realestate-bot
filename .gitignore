@@ -1,49 +1,7 @@
-# Virtual Environment
 venv/
-.venv/
-env/
-ENV/
-
-# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Environment variables
+*.db
 .env
-.env.local
-*.env
-
-# Large media files
-*.jpg
-*.png
-*.jpeg
-# welcome.jpg
-
-# Temporary / test data
-listings.csv
-*.csv.tmp
-
-# Test output and cache
 .pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-
-# Logs
-*.log
 logs/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Bothost deployment files (if you don't want to track them)
-Procfile
-run.sh
-run.bat
-
-# Temporary folders
-aggregator/
