@@ -1,14 +1,82 @@
-# Coverage
-.coverage
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Temporary project files
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+.env.local
+.env.*.local
+
+# Environment variables (local secrets)
+.env
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Logs
+logs/
+*.log
+
+# Coverage and test reports
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.tox/
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+*.egg
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary and test files
+*.tmp
+*.temp
+test_*.py
+*_test.py
+*.txt
+!requirements.txt
+!README.txt
 project_files.txt
 project_tree.txt
 tree.txt
 test_optimize.py
 run.sh
 listings.csv
-*.log
 
-# Media (if not needed)
+# Media files (optional – keep welcome.mp4 if tracked)
 # welcome.jpg
+*.jpg
+*.jpeg
+*.png
+*.gif
+# *.mp4
+!welcome.mp4   # if you want to keep welcome.mp4 tracked
+
+# Bothost / platform specific
+*.bothost.*
+
+# Misc
+*.bak
+*.orig
