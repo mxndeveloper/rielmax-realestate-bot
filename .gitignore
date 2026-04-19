@@ -1,7 +1,14 @@
-venv/
-__pycache__/
-*.pyc
-*.db
-.env
-.pytest_cache/
-logs/
+# Coverage
+.coverage
+
+# Temporary project files
+project_files.txt
+project_tree.txt
+tree.txt
+test_optimize.py
+run.sh
+listings.csv
+*.log
+
+# Media (if not needed)
+# welcome.jpg
