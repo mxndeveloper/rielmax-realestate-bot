@@ -25,7 +25,7 @@ if not WEBHOOK_DOMAIN:
     raise ValueError("BOTHOST_DOMAIN environment variable not set")
 WEBHOOK_URL = f"{WEBHOOK_DOMAIN.rstrip('/')}{WEBHOOK_PATH}"
 
-# Optional: secret token for extra security
+# Optional secret token for extra security
 SECRET_TOKEN = os.getenv("WEBHOOK_SECRET_TOKEN")
 
 bot = Bot(token=BOT_TOKEN)
