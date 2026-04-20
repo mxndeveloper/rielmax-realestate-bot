@@ -1,7 +1,8 @@
 import os
 import logging
 from aiohttp import web
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, BaseMiddleware
+from aiogram.types import Update
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from dotenv import load_dotenv
 
@@ -35,6 +36,19 @@ dp = Dispatcher()
 dp.message.middleware(ThrottlingMiddleware(rate_limit=2))
 dp.update.middleware(I18nMiddleware())
 
+# ---------- Secret Token Middleware (class‑based) ----------
+class SecretTokenMiddleware(BaseMiddleware):
+    async def __call__(self, handler, event: Update, data: dict):
+        request = data.get("request")
+        if request and SECRET_TOKEN:
+            token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+            if token != SECRET_TOKEN:
+                return web.Response(status=403, text="Forbidden")
+        return await handler(event, data)
+
+# Register the middleware
+dp.update.middleware(SecretTokenMiddleware())
+
 # ---------- Routers ----------
 dp.include_router(start.router)
 dp.include_router(listing.router)
@@ -44,26 +58,17 @@ dp.include_router(language.router)
 dp.include_router(search.router)
 dp.include_router(admin.router)
 
-# ---------- Webhook Security Middleware (Optional) ----------
-@dp.update.outer_middleware()
-async def verify_secret_token(handler, event, data):
-    request = data.get("request")
-    if request and SECRET_TOKEN:
-        token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
-        if token != SECRET_TOKEN:
-            return web.Response(status=403, text="Forbidden")
-    return await handler(event, data)
-
 # ---------- Startup & Shutdown ----------
 async def on_startup(app):
     await init_db()
+    # Set webhook with optional secret token
     await bot.set_webhook(WEBHOOK_URL, secret_token=SECRET_TOKEN)
     logger.info(f"Webhook set to {WEBHOOK_URL}")
 
 async def on_shutdown(app):
     await bot.delete_webhook()
     await bot.session.close()
-    logger.info("Webhook deleted")
+    logger.info("Webhook deleted and session closed")
 
 # ---------- Web Application ----------
 def main():
